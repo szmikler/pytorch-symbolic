@@ -121,7 +121,7 @@ class SymbolicData:
                 logging.debug(f"Adding new operator to {self.__class__.__name__}: {operator}")
 
                 def factory(op):
-                    return lambda self, *args, **kwds: self.__getattr__(op)(*args, **kwds)
+                    return lambda self, *args, **kwds: self._get_attr_node(op)(*args, **kwds)
 
                 setattr(self.__class__, operator, factory(operator))
 
@@ -271,14 +271,23 @@ class SymbolicData:
     def __hash__(self):
         return id(self)
 
+    def _get_attr_node(self, item):
+        """Register a node that extracts an attribute of the underlying value."""
+        return self(useful_layers.GetAttr(item))
+
     def __getattr__(self, item):
-        if (
-            hasattr(self.v, item)
-            and item != "__torch_function__"  # because pytorch is wrapping `+` and other operators
-        ):
-            return self(useful_layers.GetAttr(item))
+        if item.startswith("_"):
+            # Private and dunder lookups must fail fast instead of being redirected to the
+            # underlying value. Redirecting them breaks protocols that probe for optional
+            # attributes before the instance is fully initialized: unpickling, for example,
+            # probes for `__setstate__` while `_value` does not exist yet, which sent
+            # `__getattr__` into infinite recursion through the `v` property.
+            # This also covers `__torch_function__`, because pytorch wraps `+` and other operators.
+            raise AttributeError(item)
+        if hasattr(self.v, item):
+            return self._get_attr_node(item)
         else:
-            raise AttributeError
+            raise AttributeError(item)
 
 
 class SymbolicCallable(SymbolicData):
