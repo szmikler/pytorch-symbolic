@@ -337,9 +337,9 @@ def draw_graph(
         fig.set_size_inches(*figsize)
 
     fig.tight_layout()
+    if show:
+        plt.show()
     return fig
-    # if show:
-    #     fig.show()
 
 
 def sort_graph_and_check_DAG(nodes: set[SymbolicData]) -> list[SymbolicData]:
