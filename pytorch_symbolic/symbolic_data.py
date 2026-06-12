@@ -156,7 +156,7 @@ class SymbolicData:
             parents=parents,
             layer=layer,
             depth=new_depth,
-            batch_size_known=self.batch_size_known,
+            batch_size_known=all(parent.batch_size_known for parent in parents),
             custom_name=custom_name,
         )
         for parent in parents:
