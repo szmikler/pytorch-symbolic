@@ -52,6 +52,19 @@ class DetachedSymbolicModel(nn.Module):
         exec(self._generated_forward_source, {}, scope)
         self.forward = MethodType(scope["forward"], self)
 
+    def __getstate__(self):
+        # The generated forward is created with `exec` and cannot be pickled.
+        # It is recreated in `__setstate__` from `_generated_forward_source`.
+        state = super().__getstate__()
+        state.pop("forward", None)
+        return state
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        scope = {"self": self}
+        exec(self._generated_forward_source, {}, scope)
+        self.forward = MethodType(scope["forward"], self)
+
 
 class SymbolicModel(nn.Module):
     def __init__(
@@ -261,6 +274,20 @@ class SymbolicModel(nn.Module):
         scope = {"self": self}
         exec(self._generated_forward_source, {}, scope)
         self.forward = MethodType(scope["forward"], self)
+
+    def __getstate__(self):
+        # The codegen forward is created with `exec` and cannot be pickled.
+        # It is recreated in `__setstate__` from `_generated_forward_source`.
+        state = super().__getstate__()
+        state.pop("forward", None)
+        return state
+
+    def __setstate__(self, state):
+        super().__setstate__(state)
+        if self._enable_forward_codegen:
+            scope = {"self": self}
+            exec(self._generated_forward_source, {}, scope)
+            self.forward = MethodType(scope["forward"], self)
 
     def _used_nodes(self) -> Set[SymbolicData]:
         """Return a set of all nodes used in this model."""
