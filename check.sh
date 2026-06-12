@@ -4,17 +4,11 @@ echo "Running test suite for pytorch-symbolic!"
 echo "Optional dependencies are required. Install using 'pip install pytorch-symbolic[full]'"
 echo ""
 
-echo "Running isort..."
-isort .
+echo "Running ruff check..."
+ruff check . --fix || exit
 
-echo "Running black..."
-black .
-
-echo "Running flake8..."
-flake8 .
-
-echo "Running mypy..."
-mypy .
+echo "Running ruff format..."
+ruff format . || exit
 
 echo "Running pytest with the default settings..."
 pytest --no-header . || exit
