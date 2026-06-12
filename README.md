@@ -17,6 +17,7 @@ Features:
 * Small extension of PyTorch
 * No dependencies besides PyTorch
 * Produces models entirely compatible with PyTorch
+* Works with `torch.compile` and `torch.export`
 * Overhead free as tested in [benchmarks](docs/benchmarks.md)
 * Reduces the amount of boilerplate code
 * Works well with complex architectures
@@ -61,6 +62,15 @@ _______________________________________________________
 
 **See more examples
 in [Documentation Quick Start](docs/quick_start.md).**
+
+Symbolic models are plain `torch.nn.Module` objects, so they work with modern PyTorch tooling:
+
+```python
+model = SymbolicModel(inputs=inputs, outputs=x)
+compiled_model = torch.compile(model)
+exported_program = torch.export.export(model, (example_input,))
+# ...
+```
 
 ## How to start
 
