@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Hashable, List, Tuple
+from collections.abc import Callable, Hashable
 
 from torch import nn
 
@@ -23,14 +23,14 @@ def _replace_symbolic_with_value(container, extracted, navigation):
         extracted.append(container)
         return container.v
 
-    if isinstance(container, List) or isinstance(container, Tuple):
+    if isinstance(container, (list, tuple)):
         new_list = []
         for i, x in enumerate(container):
             navigation[-1].append(i)
             new_list.append(_replace_symbolic_with_value(x, extracted, navigation))
             navigation[-1].pop()
         return new_list
-    if isinstance(container, Dict):
+    if isinstance(container, dict):
         new_dict = {}
         for k, v in container.items():
             navigation[-1].append(k)
@@ -59,12 +59,12 @@ def add_to_graph(func: Callable | nn.Module, *args, custom_name: str | None = No
         bias = Input(batch_size=(16,))
         output = add_to_graph(F.conv2d, input=inputs, weight=k, bias=bias, padding=1)
     """
-    extracted_symbols: List[SymbolicData] = []
+    extracted_symbols: list[SymbolicData] = []
 
     real_call_args = []
     real_call_kwds = {}
 
-    navigation: List[List[Hashable]] = [[]]
+    navigation: list[list[Hashable]] = [[]]
     real_call_args = _replace_symbolic_with_value(args, extracted_symbols, navigation)
     real_call_kwds = _replace_symbolic_with_value(kwds, extracted_symbols, navigation)
     navigation.pop()
@@ -75,7 +75,7 @@ def add_to_graph(func: Callable | nn.Module, *args, custom_name: str | None = No
 
     def wrapper_function(*args):
         assert len(args) == len(navigation), f"Expected {len(navigation)} inputs, not {len(args)}!"
-        for arg, navi in zip(args, navigation):
+        for arg, navi in zip(args, navigation, strict=True):
             obj = real_call_kwds if isinstance(navi[0], str) else real_call_args
 
             for idx in navi[:-1]:

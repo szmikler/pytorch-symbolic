@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Set, Tuple
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING, Any
 
 from .symbolic_data import SymbolicData, SymbolicTensor, useful_layers
 
@@ -15,8 +16,8 @@ from torch import nn
 
 
 def check_for_missing_inputs(
-    used_nodes: Set[SymbolicData],
-    inputs: Tuple[SymbolicData, ...] | List[SymbolicData],
+    used_nodes: set[SymbolicData],
+    inputs: tuple[SymbolicData, ...] | list[SymbolicData],
 ):
     """Check if there exist nodes which require input from outside of the graph.
 
@@ -41,18 +42,18 @@ def check_for_missing_inputs(
 
 
 def figure_out_nodes_between(
-    inputs: Tuple[SymbolicData, ...] | List[SymbolicData] | None = None,
-    outputs: Tuple[SymbolicData, ...] | List[SymbolicData] | None = None,
-) -> Set[SymbolicData]:
+    inputs: tuple[SymbolicData, ...] | list[SymbolicData] | None = None,
+    outputs: tuple[SymbolicData, ...] | list[SymbolicData] | None = None,
+) -> set[SymbolicData]:
     """Returns intersection of predecessors tree of outputs and succesors tree of inputs."""
 
-    all_nodes_above: List[SymbolicData] = []
+    all_nodes_above: list[SymbolicData] = []
     if outputs is not None:
         for output_leaf in outputs:
             nodes_above = output_leaf._get_all_nodes_above()
             all_nodes_above.extend(nodes_above)
 
-    all_nodes_below: List[SymbolicData] = []
+    all_nodes_below: list[SymbolicData] = []
     if inputs is not None:
         for input_leaf in inputs:
             nodes_below = input_leaf._get_all_nodes_below()
@@ -115,7 +116,7 @@ def _fix_positions_in_multipartite_layout(graph, orig_positions_dict, align: str
     orig_sum = _calc_sum_sq_distances(graph, orig_positions_dict)
 
     positions = list(orig_positions_dict.values())
-    selected_positions: Dict[int, Tuple[float, float]] = {}
+    selected_positions: dict[int, tuple[float, float]] = {}
 
     layers = defaultdict(list)
     for pos in positions:
@@ -154,7 +155,7 @@ def _fix_positions_in_multipartite_layout(graph, orig_positions_dict, align: str
         # Minimize the sum of squared distances
         # This might work poorly when there are interconnections in the layer
         rows, cols = linear_sum_assignment(distances)
-        for row, col in zip(rows, cols):
+        for row, col in zip(rows, cols, strict=True):
             selected_positions[nodes_in_layer[row]] = (avail_xs[col], layer)
 
     new_sum = _calc_sum_sq_distances(graph, selected_positions)
@@ -185,7 +186,7 @@ def draw_graph(
     outputs: Iterable[SymbolicData] | SymbolicData | None = None,
     node_text_func: Callable[[SymbolicData], str] | None = None,
     edge_text_func: Callable[[nn.Module], str] | None = None,
-    node_text_namespace: Dict[str, Any] | None = None,
+    node_text_namespace: dict[str, Any] | None = None,
     rotate_graph: bool = False,
     rotate_labels: bool = False,
     show: bool = False,
@@ -341,7 +342,7 @@ def draw_graph(
     #     fig.show()
 
 
-def sort_graph_and_check_DAG(nodes: Set[SymbolicData]) -> List[SymbolicData]:
+def sort_graph_and_check_DAG(nodes: set[SymbolicData]) -> list[SymbolicData]:
     """Sort graph topologically.
 
     Wikipedia:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import logging
 from types import MethodType
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any
 
 import torch
 from torch import nn
@@ -17,7 +17,7 @@ from .symbolic_data import SymbolicData, SymbolicTensor
 
 
 class DetachedSymbolicModel(nn.Module):
-    def __init__(self, names: List[str], layers: List[nn.Module], forward_src: str):
+    def __init__(self, names: list[str], layers: list[nn.Module], forward_src: str):
         """A tiny model detached from the SymbolicModel graph structure.
 
         It can live, even if the graph structure is removed!
@@ -37,7 +37,7 @@ class DetachedSymbolicModel(nn.Module):
 
         super().__init__()
         self._execution_order_layers = []
-        for name, layer in zip(names, layers):
+        for name, layer in zip(names, layers, strict=True):
             try:
                 layer = copy.deepcopy(layer)
             except Exception as e:
@@ -69,8 +69,8 @@ class DetachedSymbolicModel(nn.Module):
 class SymbolicModel(nn.Module):
     def __init__(
         self,
-        inputs: Tuple[SymbolicData, ...] | List[SymbolicData] | SymbolicData,
-        outputs: Tuple[SymbolicData, ...] | List[SymbolicData] | SymbolicData,
+        inputs: tuple[SymbolicData, ...] | list[SymbolicData] | SymbolicData,
+        outputs: tuple[SymbolicData, ...] | list[SymbolicData] | SymbolicData,
         enable_forward_codegen=None,
     ):
         """A PyTorch model that replays operations defined in the graph.
@@ -110,18 +110,18 @@ class SymbolicModel(nn.Module):
         if isinstance(inputs, SymbolicData):
             inputs = (inputs,)
         assert all(isinstance(x, SymbolicData) for x in inputs), "Only SymbolicData allowed in inputs!"
-        self.inputs: Tuple[SymbolicData, ...] = tuple(inputs)
+        self.inputs: tuple[SymbolicData, ...] = tuple(inputs)
 
         if isinstance(outputs, SymbolicData):
             outputs = (outputs,)
         assert all(isinstance(x, SymbolicData) for x in outputs), "Only SymbolicData allowed in outputs!"
-        self.outputs: Tuple[SymbolicData, ...] = tuple(outputs)
+        self.outputs: tuple[SymbolicData, ...] = tuple(outputs)
 
         # Initialize helper variables
-        self._layer_type_counts: Dict[str, int] = {}
-        self._node_to_layer_name: Dict[SymbolicData, str] = {}
-        self._execution_order_nodes: List[SymbolicData] = []
-        self._execution_order_layers: List[nn.Module] = []
+        self._layer_type_counts: dict[str, int] = {}
+        self._node_to_layer_name: dict[SymbolicData, str] = {}
+        self._execution_order_nodes: list[SymbolicData] = []
+        self._execution_order_layers: list[nn.Module] = []
         self._figure_out_execution_order()
 
         if enable_forward_codegen is None:
@@ -141,7 +141,7 @@ class SymbolicModel(nn.Module):
         is True. If this happened and you want to see your source, print `self._generated_forward_source`.
         """
         assert len(inputs) == len(self.inputs), "Number of inputs doesn't match!"
-        for input_data, input_node in zip(inputs, self.inputs):
+        for input_data, input_node in zip(inputs, self.inputs, strict=True):
             input_node._launch_input(input_data)
 
         for node in self._execution_order_nodes:
@@ -240,7 +240,7 @@ class SymbolicModel(nn.Module):
                     maxcolwidth[idx] = len(col)
 
         print("_" * (sum(maxcolwidth) + ncols * space_between_cols))
-        for sep, row in zip(separators, data):
+        for sep, row in zip(separators, data, strict=True):
             for idx, col in enumerate(row):
                 s = col.ljust(maxcolwidth[idx] + space_between_cols, " ")
                 print(s, end="")
@@ -289,16 +289,16 @@ class SymbolicModel(nn.Module):
             exec(self._generated_forward_source, {}, scope)
             self.forward = MethodType(scope["forward"], self)
 
-    def _used_nodes(self) -> Set[SymbolicData]:
+    def _used_nodes(self) -> set[SymbolicData]:
         """Return a set of all nodes used in this model."""
         return figure_out_nodes_between(self.inputs, self.outputs)
 
-    def _remove_repeated_execution(self, execution_order_nodes: List[SymbolicData]) -> List[SymbolicData]:
+    def _remove_repeated_execution(self, execution_order_nodes: list[SymbolicData]) -> list[SymbolicData]:
         """In case of multiple outputs, we need only one of the output node to launch the layer."""
         nodes_without_repeated_execution = []
         used_nodes = self._used_nodes()
 
-        already_executed: Set[SymbolicData] = set()
+        already_executed: set[SymbolicData] = set()
         for node in execution_order_nodes:
             if node in already_executed:
                 continue

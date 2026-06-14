@@ -8,7 +8,7 @@ from .symbolic_data import CustomInput, Input
 from .symbolic_model import SymbolicModel
 
 __license__ = "MIT"
-__version__ = "1.1.1"
+__version__ = "1.2.0"
 __author__ = "Szymon Mikler"
 
 __all__ = [

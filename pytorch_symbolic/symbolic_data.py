@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from types import MethodWrapperType
-from typing import Any, Callable, List, Set, Tuple
+from typing import Any
 
 import torch
 from torch import nn
@@ -18,7 +19,7 @@ class SymbolicData:
     def __init__(
         self,
         value: Any,
-        parents: Tuple[SymbolicData, ...] = (),
+        parents: tuple[SymbolicData, ...] = (),
         depth: int = 0,
         layer: nn.Module | None = None,
         batch_size_known: bool = False,
@@ -70,9 +71,9 @@ class SymbolicData:
         self.depth = depth
         self.batch_size_known = batch_size_known
 
-        self._children: List[SymbolicData] = []
-        self._parents: Tuple[SymbolicData, ...] = parents
-        self._layer_full_siblings: Tuple[SymbolicData, ...] = (self,)
+        self._children: list[SymbolicData] = []
+        self._parents: tuple[SymbolicData, ...] = parents
+        self._layer_full_siblings: tuple[SymbolicData, ...] = (self,)
 
         self._define_class_operators()
 
@@ -126,12 +127,12 @@ class SymbolicData:
                 setattr(self.__class__, operator, factory(operator))
 
     @property
-    def parents(self) -> Tuple[SymbolicData, ...]:
+    def parents(self) -> tuple[SymbolicData, ...]:
         """Acces the tuple of parents of this node."""
         return tuple(self._parents)
 
     @property
-    def children(self) -> Tuple[SymbolicData, ...]:
+    def children(self) -> tuple[SymbolicData, ...]:
         """Acces the tuple of children of this node."""
         return tuple(self._children)
 
@@ -140,7 +141,7 @@ class SymbolicData:
         layer: nn.Module,
         *others: SymbolicData,
         custom_name: str | None = None,
-    ) -> SymbolicData | Tuple[SymbolicData, ...]:
+    ) -> SymbolicData | tuple[SymbolicData, ...]:
         """Register a new layer in the graph. Layer must be nn.Module."""
         assert all([isinstance(other, SymbolicData) for other in others]), "Works with SymbolicData only!"
 
@@ -176,7 +177,7 @@ class SymbolicData:
             outputs = self.layer(*(parent._value for parent in self._parents))
             if len(self._layer_full_siblings) == 1:
                 outputs = (outputs,)
-            for full_sibling, output in zip(self._layer_full_siblings, outputs):
+            for full_sibling, output in zip(self._layer_full_siblings, outputs, strict=True):
                 full_sibling._value = output
 
     def _clear_value(self):
@@ -214,7 +215,7 @@ class SymbolicData:
         for node in new_layer_nodes:
             yield node
 
-    def _get_all_nodes_above(self) -> Set[SymbolicData]:
+    def _get_all_nodes_above(self) -> set[SymbolicData]:
         nodes_seen = {self}
         to_expand = [self]
         while to_expand:
@@ -225,7 +226,7 @@ class SymbolicData:
                     nodes_seen.add(parent)
         return nodes_seen
 
-    def _get_all_nodes_below(self) -> Set[SymbolicData]:
+    def _get_all_nodes_below(self) -> set[SymbolicData]:
         nodes_seen = {self}
         to_expand = [self]
         while to_expand:
@@ -243,7 +244,7 @@ class SymbolicData:
         if len(self._layer_full_siblings) > 1:
             assert len(self._parents) == 1
             outputs = self.layer(*self._parents[0]._value)
-            for node, output in zip(self._layer_full_siblings, outputs):
+            for node, output in zip(self._layer_full_siblings, outputs, strict=True):
                 node._value = output
         else:
             self._value = self.layer(*(parent._value for parent in self._parents))
@@ -348,17 +349,17 @@ class SymbolicTensor(SymbolicData):
         return self._shape[3]
 
     @property
-    def HW(self) -> Tuple[int, int]:
+    def HW(self) -> tuple[int, int]:
         """Tuple of (height, width) in Image data."""
         return (self.H, self.W)
 
     @property
-    def CHW(self) -> Tuple[int, int, int]:
+    def CHW(self) -> tuple[int, int, int]:
         """Tuple of (channels, height, width) in Image data."""
         return (self.C, self.H, self.W)
 
     @property
-    def HWC(self) -> Tuple[int, int, int]:
+    def HWC(self) -> tuple[int, int, int]:
         """Tuple of (height, width, channels) in Image data."""
         return (self.H, self.W, self.C)
 
@@ -368,7 +369,7 @@ class SymbolicTensor(SymbolicData):
         return self._shape[0]
 
     @property
-    def shape(self) -> Tuple[int | None, ...]:
+    def shape(self) -> tuple[int | None, ...]:
         """Shape of the underlying Symbolic Tensor, including batch size."""
         return self._shape
 
@@ -508,9 +509,9 @@ def SymbolicFactory(dtype):
 
 
 def Input(
-    shape: Tuple | List = (),
+    shape: tuple | list = (),
     batch_size: int = 1,
-    batch_shape: Tuple | List | None = None,
+    batch_shape: tuple | list | None = None,
     dtype=torch.float32,
     min_value: float = 0.0,
     max_value: float = 1.0,

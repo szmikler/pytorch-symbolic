@@ -1,6 +1,6 @@
 #  Copyright (c) 2022 Szymon Mikler
 
-from typing import Callable
+from collections.abc import Callable
 
 import torch
 from torch import nn

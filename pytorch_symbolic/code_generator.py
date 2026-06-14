@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Set, Tuple
-
 from pytorch_symbolic.symbolic_data import SymbolicData
 
 
 def generate_forward_with_loops(
-    inputs: List[SymbolicData] | Tuple[SymbolicData, ...],
-    outputs: List[SymbolicData] | Tuple[SymbolicData, ...],
-    execution_order: List[SymbolicData] | Tuple[SymbolicData, ...],
-    nodes_in_subgraph: Set[SymbolicData],
+    inputs: list[SymbolicData] | tuple[SymbolicData, ...],
+    outputs: list[SymbolicData] | tuple[SymbolicData, ...],
+    execution_order: list[SymbolicData] | tuple[SymbolicData, ...],
+    nodes_in_subgraph: set[SymbolicData],
     min_loop_length: int | float = float("inf"),
 ) -> str:
     """Generate code for forward function of SymbolicModel.
