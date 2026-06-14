@@ -42,7 +42,7 @@ def VGG(
     flow = inputs
 
     iteration = 0
-    for group_size, width, pool in zip(group_sizes, channels, pools):
+    for group_size, width, pool in zip(group_sizes, channels, pools, strict=True):
         if iteration == 0:
             iteration = 1
         else:

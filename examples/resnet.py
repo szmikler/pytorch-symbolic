@@ -25,7 +25,7 @@ def ToyResNet(input_shape, n_classes):
     inputs = Input(input_shape)
     flow = inputs(nn.Conv2d(inputs.channels, 16, 3, 1, 1))
 
-    for group_size, width, stride in zip((2, 2, 2), (16, 32, 64), (1, 2, 2)):
+    for group_size, width, stride in zip((2, 2, 2), (16, 32, 64), (1, 2, 2), strict=True):
         for _ in range(group_size):
             shortcut = shortcut_func(flow, width, stride)
             flow = flow(nn.BatchNorm2d(flow.channels))(nn.ReLU())
@@ -125,7 +125,7 @@ def ResNet(
     flow = inputs(nn.Conv2d(inputs.channels, 16, 3, 1, 1))
 
     # BUILD THE RESIDUAL BLOCKS
-    for group_size, width, stride in zip(group_sizes, channels, strides):
+    for group_size, width, stride in zip(group_sizes, channels, strides, strict=True):
         flow = flow(nn.BatchNorm2d(flow.channels))(activation)
         preactivate_block = False
 
