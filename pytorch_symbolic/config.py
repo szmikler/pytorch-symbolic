@@ -1,5 +1,6 @@
 #  Copyright (c) 2022 Szymon Mikler
 
+import ast
 import os
 
 from .symbolic_api_2 import enable_symbolic_api_2_for_new_modules
@@ -7,7 +8,7 @@ from .symbolic_api_2 import enable_symbolic_api_2_for_new_modules
 
 def read_from_env(name, default):
     if name in os.environ:
-        value = eval(os.environ[name], {}, {})
+        value = ast.literal_eval(os.environ[name])
     else:
         value = default
     return value
