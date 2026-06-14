@@ -803,3 +803,50 @@ But note a few things:
   If you use in-place operation, it will _not_ be replayed during graph re-execution,
   unless its output (usually `None`) is included in Symbolic Model's outputs.
   It is your responsibility to avoid in-place operations.
+
+## Runtime caveats
+
+A few behaviors are worth knowing about before using Pytorch Symbolic in larger projects.
+
+### Importing the library patches `torch.nn.Module`
+
+To make the `layer(symbolic_data)` notation work, importing `pytorch_symbolic` wraps
+`torch.nn.Module.__new__`. After the first module is created, every `nn.Module.__call__`
+in the process goes through a small wrapper that checks whether any argument is Symbolic Data.
+This adds a tiny overhead to every module call, which is only noticeable for very small modules.
+
+After all your models are created, you can remove the wrapper:
+
+```py
+from pytorch_symbolic import optimize_module_calls
+
+...  # create your models here
+
+optimize_module_calls()
+```
+
+This is also documented in [optimize_module_calls reference](reference/optimize_module_calls.md)
+and measured in [benchmarks](benchmarks.md).
+You can disable the wrapping entirely by setting the environment variable
+`PYTORCH_SYMBOLIC_API_2_ENABLED_BY_DEFAULT=False` before importing,
+at the cost of losing the `layer(symbolic_data)` notation
+(`symbolic_data(layer)` and `add_to_graph` still work).
+
+### Forward without codegen keeps intermediate values alive
+
+By default, Symbolic Model generates an efficient `forward` function that keeps
+intermediate results in local variables.
+With `SymbolicModel(..., enable_forward_codegen=False)`, the model instead replays
+the graph and stores every intermediate result in the graph nodes.
+These tensors stay alive between calls, and a model in this mode is not reentrant:
+do not call it from multiple threads concurrently.
+The default codegen forward is unaffected.
+
+### Attribute access registers nodes in the graph
+
+Accessing an attribute of Symbolic Data, e.g. `symbolic.ndim`, registers a `GetAttr`
+node in the graph, so the access can be replayed on the real data.
+This is by design, but it means that even `hasattr(symbolic, ...)` checks with
+public attribute names mutate the graph.
+Only the nodes between your model's inputs and outputs are replayed,
+so leftover nodes do not affect created models.
