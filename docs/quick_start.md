@@ -110,6 +110,7 @@ Using Pytorch Symbolic, you can perform much more complicated operations.
 	* `inputs = Input(shape=(C, H, W))`
 	* `inputs = Input(shape=(C, H, W), batch_size=B)`
 	* `inputs = Input(batch_shape=(B, C, H, W))`
+	* `inputs = Input(shape=(C, None, None))` for dynamic height and width, like in Keras
 2. Register new modules in the graph. There are a few ways:
 	* `outputs = inputs(layer)`
 	* `outputs = layer(inputs)`
@@ -129,6 +130,33 @@ Using Pytorch Symbolic, you can perform much more complicated operations.
 8. Use `model` as a normal PyTorch `nn.Module`. It's 100% compatible.
    When using the model,
    all the operations performed on Symbolic Data will be replayed on the real data.
+
+### Dynamic dimensions
+
+If a dimension of your data varies between batches, e.g. image size or sequence length,
+mark it with `None`, like in Keras. It will be displayed as `None` in `.shape` and
+in the model summary, and the model will accept real data of any size there:
+
+```python
+import torch
+from torch import nn
+from pytorch_symbolic import Input, SymbolicModel
+
+inputs = Input(shape=(3, None, None))  # dynamic height and width
+assert inputs.shape == (1, 3, None, None)
+
+x = nn.Conv2d(in_channels=inputs.C, out_channels=16, kernel_size=3, padding=1)(inputs)
+model = SymbolicModel(inputs, x)
+
+outputs = model(torch.rand(2, 3, 32, 48))
+assert outputs.shape == (2, 16, 32, 48)
+```
+
+Under the hood, dynamic dimensions are traced with a placeholder size of 16.
+If the traced layers require larger inputs, increase it with
+`Input(shape=(3, None, None), dynamic_size_hint=64)`.
+Note that shapes of intermediate Symbolic Tensors are still reported with
+the placeholder size - only the input nodes display `None`.
 
 ### Sequential topology example
 

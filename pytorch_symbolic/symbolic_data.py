@@ -319,17 +319,18 @@ class SymbolicTensor(SymbolicData):
         super().__init__(*args, **kwds)
         assert isinstance(self.v, torch.Tensor)
         self._shape = self.v.shape
+        self._dynamic_dims: set[int] = set()
 
     @property
-    def features(self) -> int:
+    def features(self) -> int | None:
         """Size of the last dimension."""
-        return self._shape[-1]
+        return self.shape[-1]
 
     @property
-    def C(self) -> int:
+    def C(self) -> int | None:
         """Number of channels in Image data."""
         assert len(self._shape) == 4, "The data is not of [C,H,W] form!"
-        return self._shape[1]
+        return self.shape[1]
 
     @property
     def channels(self) -> int:
@@ -337,16 +338,16 @@ class SymbolicTensor(SymbolicData):
         return self.C
 
     @property
-    def H(self) -> int:
+    def H(self) -> int | None:
         """Height in Image data."""
         assert len(self._shape) == 4, "The data is not of [C,H,W] form!"
-        return self._shape[2]
+        return self.shape[2]
 
     @property
-    def W(self) -> int:
+    def W(self) -> int | None:
         """Width in Image data."""
         assert len(self._shape) == 4, "The data is not of [C,H,W] form!"
-        return self._shape[3]
+        return self.shape[3]
 
     @property
     def HW(self) -> tuple[int, int]:
@@ -366,16 +367,24 @@ class SymbolicTensor(SymbolicData):
     @property
     def batch_size(self) -> int | None:
         """Batch size of the data. Will be default if was not provided."""
-        return self._shape[0]
+        return self.shape[0]
 
     @property
     def shape(self) -> tuple[int | None, ...]:
-        """Shape of the underlying Symbolic Tensor, including batch size."""
+        """Shape of the underlying Symbolic Tensor, including batch size.
+
+        Dimensions created with ``None`` in ``Input`` are dynamic and are returned as ``None``.
+        """
+        if self._dynamic_dims:
+            return tuple(None if idx in self._dynamic_dims else int(size) for idx, size in enumerate(self._shape))
         return self._shape
 
     @property
     def numel(self) -> int:
-        """Number of the values in underlying Symbolic Tensor. If batch size is known, it is used too."""
+        """Number of the values in underlying Symbolic Tensor. If batch size is known, it is used too.
+
+        Dynamic dimensions are counted with the placeholder size they were traced with.
+        """
         return self._shape.numel()
 
     # These methods do not need to be defined, because SymbolicData is redirecting __getattr__.
@@ -515,6 +524,7 @@ def Input(
     dtype=torch.float32,
     min_value: float = 0.0,
     max_value: float = 1.0,
+    dynamic_size_hint: int = 16,
 ) -> SymbolicTensor:
     """Input to Symbolic Model. Create Symbolic Tensor as a root node in the graph.
 
@@ -523,12 +533,16 @@ def Input(
     Parameters
     ----------
     shape
-        Shape of the real data NOT including the batch dimension
+        Shape of the real data NOT including the batch dimension.
+        A dimension can be ``None`` to mark it as dynamic, like in Keras:
+        it will be reported as ``None`` in ``.shape`` and in model summary,
+        and the real data can have any size there.
     batch_size
         Optional batch size of the Tensor
     batch_shape
         Shape of the real data including the batch dimension.
         If both ``shape`` and ``batch_shape`` are given, ``batch_shape`` has higher priority.
+        ``batch_shape[0]`` can be ``None`` to mark the batch size as unknown.
     dtype
         Dtype of the real data that will be the input of the network
     min_value
@@ -537,24 +551,39 @@ def Input(
         reasonable minimal value that the model can take as an input.
     max_value
         As above, but the maximal value
+    dynamic_size_hint
+        Placeholder size used during tracing for the dimensions marked as ``None``.
+        Increase it if the traced layers require larger inputs, e.g. for deep
+        downsampling stacks.
 
     Returns
     -------
     SymbolicTensor
         Root node in the graph
     """
+    assert dynamic_size_hint >= 1, "dynamic_size_hint must be a positive integer!"
     batch_size_known = True
+    dynamic_dims = set()
 
     if batch_shape is not None:
         batch_size = batch_shape[0]
         shape = batch_shape[1:]
+        if batch_size is None:
+            batch_size = 1
+            batch_size_known = False
+            dynamic_dims.add(0)
     else:
         # By default, we use batch_size of 1 under the hood
         batch_size_known = False
 
+    dynamic_dims.update(idx + 1 for idx, size in enumerate(shape) if size is None)
+    shape = tuple(dynamic_size_hint if size is None else size for size in shape)
+
     value = torch.rand(batch_size, *shape) * (max_value - min_value) + min_value
     value = value.to(dtype)
-    return SymbolicTensor(value=value, batch_size_known=batch_size_known)
+    symbolic_tensor = SymbolicTensor(value=value, batch_size_known=batch_size_known)
+    symbolic_tensor._dynamic_dims = dynamic_dims
+    return symbolic_tensor
 
 
 def CustomInput(data: Any) -> SymbolicData:
