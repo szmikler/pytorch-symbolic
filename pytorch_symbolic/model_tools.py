@@ -35,9 +35,15 @@ def model_similar(a: nn.Module, b: nn.Module):
 
 
 def hash_torch_tensor(tensor: torch.Tensor):
-    """Interpret the tensor as a string and return its hash."""
-    tensor_as_string = str(tensor.flatten().tolist())
-    return hash(tensor_as_string)
+    """Hash the tensor by its raw bytes, dtype and shape."""
+    try:
+        tensor_bytes = tensor.detach().cpu().contiguous().numpy().tobytes()
+    except (RuntimeError, TypeError):
+        # Numpy can be unavailable and some dtypes cannot be converted to numpy.
+        # Fall back to the much slower string representation.
+        tensor_as_string = str(tensor.flatten().tolist())
+        return hash(tensor_as_string)
+    return hash((str(tensor.dtype), tuple(tensor.shape), tensor_bytes))
 
 
 def models_have_corresponding_parameters(a: nn.Module, b: nn.Module):
