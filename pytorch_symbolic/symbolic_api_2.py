@@ -53,9 +53,9 @@ def is_symbolic_api_2_enabled():
 def enable_symbolic_api_2_for_new_modules():
     """Add a __new__ wrapper for `torch.nn.Module`."""
 
-    def wrapped_new(self, *args, **kwds):
+    def wrapped_new(cls, *args, **kwds):
         SymbolicAPI2ContextManager().__enter__()
-        obj = super(nn.Module, self).__new__(self)
+        obj = super(nn.Module, cls).__new__(cls)
         return obj
 
     nn.Module.__new__ = wrapped_new

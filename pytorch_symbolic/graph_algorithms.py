@@ -72,8 +72,7 @@ def figure_out_nodes_between(
 def default_node_text(sym: SymbolicData) -> str:
     if isinstance(sym, SymbolicTensor):
         return str(tuple(sym.v.shape))
-    # mypy hates the next line for some reason
-    if isinstance(sym.v, Callable):  # type: ignore
+    if isinstance(sym.v, Callable):
         return "callable"
     if hasattr(sym.v, "__len__"):
         return f"{type(sym.v).__name__}({len(sym.v)})"
@@ -332,7 +331,7 @@ def draw_graph(
     ]
     plt.legend(handles=handles)
 
-    fig: plt.Figure = plt.gcf()
+    fig = plt.gcf()
     if figsize:
         fig.set_size_inches(*figsize)
 

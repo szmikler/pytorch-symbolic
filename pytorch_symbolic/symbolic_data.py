@@ -79,7 +79,7 @@ class SymbolicData:
         self._define_class_operators()
 
     @property
-    def v(self):
+    def v(self) -> Any:
         """Get the underlying value."""
         if self._value is None:
             self._recalculate_value()
@@ -174,6 +174,7 @@ class SymbolicData:
         for parent in self._parents:
             if parent._value is None:
                 parent._recalculate_value()  # recursive call to parents
+        assert self.layer is not None
         with torch.no_grad():
             outputs = self.layer(*(parent._value for parent in self._parents))
             if len(self._layer_full_siblings) == 1:
@@ -202,7 +203,7 @@ class SymbolicData:
         layer = useful_layers.UnpackLayer()
         new_outputs = layer.__call__(*self.v)
 
-        new_layer_nodes = []
+        new_layer_nodes: list[SymbolicData] = []
         for new_value in new_outputs:
             cls = _figure_out_symbolic_type(new_value)
 
@@ -225,8 +226,8 @@ class SymbolicData:
             yield node
 
     def _get_all_nodes_above(self) -> set[SymbolicData]:
-        nodes_seen = {self}
-        to_expand = [self]
+        nodes_seen: set[SymbolicData] = {self}
+        to_expand: list[SymbolicData] = [self]
         while to_expand:
             node = to_expand.pop()
             for parent in node._parents:
@@ -236,8 +237,8 @@ class SymbolicData:
         return nodes_seen
 
     def _get_all_nodes_below(self) -> set[SymbolicData]:
-        nodes_seen = {self}
-        to_expand = [self]
+        nodes_seen: set[SymbolicData] = {self}
+        to_expand: list[SymbolicData] = [self]
         while to_expand:
             node = to_expand.pop()
             for child in node._children:
@@ -250,9 +251,12 @@ class SymbolicData:
         self._value = x
 
     def _launch(self):
+        assert self.layer is not None
         if len(self._layer_full_siblings) > 1:
             assert len(self._parents) == 1
-            outputs = self.layer(*self._parents[0]._value)
+            parent_value = self._parents[0]._value
+            assert parent_value is not None
+            outputs = self.layer(*parent_value)
             for node, output in zip(self._layer_full_siblings, outputs, strict=True):
                 node._value = output
         else:
@@ -311,6 +315,7 @@ class SymbolicCallable(SymbolicData):
         __func__.__name__ = self.v.__name__
 
         returns = add_to_graph(__func__, self, *args, **kwds)
+        assert isinstance(returns, SymbolicData)
         if returns.v is NotImplemented:
             dtypes = [type(p.v).__name__ for p in returns.parents[1:]]
             raise NotImplementedError(f"Operation on {dtypes} returned NonImplemented object!")

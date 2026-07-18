@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Hashable
+from typing import Any, cast
 
 from torch import nn
 
@@ -10,7 +11,11 @@ from . import useful_layers
 from .symbolic_data import SymbolicData
 
 
-def _replace_symbolic_with_value(container, extracted, navigation):
+def _replace_symbolic_with_value(
+    container: Any,
+    extracted: list[SymbolicData],
+    navigation: list[list[Hashable]],
+) -> Any:
     """Search recursively for all occurences of Symbolic and replace them with their value.
 
     At the same time save navigation to know, how to do indexing to get to them.
@@ -61,12 +66,9 @@ def add_to_graph(func: Callable | nn.Module, *args, custom_name: str | None = No
     """
     extracted_symbols: list[SymbolicData] = []
 
-    real_call_args = []
-    real_call_kwds = {}
-
     navigation: list[list[Hashable]] = [[]]
-    real_call_args = _replace_symbolic_with_value(args, extracted_symbols, navigation)
-    real_call_kwds = _replace_symbolic_with_value(kwds, extracted_symbols, navigation)
+    real_call_args = cast(list[Any], _replace_symbolic_with_value(args, extracted_symbols, navigation))
+    real_call_kwds = cast(dict[str, Any], _replace_symbolic_with_value(kwds, extracted_symbols, navigation))
     navigation.pop()
 
     assert len(extracted_symbols) > 0, "No Symbolic Data detected in the input!"
@@ -76,7 +78,7 @@ def add_to_graph(func: Callable | nn.Module, *args, custom_name: str | None = No
     def wrapper_function(*args):
         assert len(args) == len(navigation), f"Expected {len(navigation)} inputs, not {len(args)}!"
         for arg, navi in zip(args, navigation, strict=True):
-            obj = real_call_kwds if isinstance(navi[0], str) else real_call_args
+            obj: Any = real_call_kwds if isinstance(navi[0], str) else real_call_args
 
             for idx in navi[:-1]:
                 obj = obj[idx]

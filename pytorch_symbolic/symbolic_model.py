@@ -189,7 +189,7 @@ class SymbolicModel(nn.Module):
 
         data = [["", "Layer", "Output shape", "Params", "Parent"]]
         ncols = len(data[0])
-        separators = ["="]
+        separators: list[str | None] = ["="]
         node_to_idx = {}
         for node in self.inputs:
             node_to_idx[node] = len(data)
@@ -214,6 +214,7 @@ class SymbolicModel(nn.Module):
         for node in self._execution_order_nodes:
             node_to_idx[node] = len(data)
             layer = node.layer
+            assert layer is not None
             if isinstance(node, SymbolicTensor):
                 shape = list(node.shape)
                 if not node.batch_size_known:
@@ -322,9 +323,14 @@ class SymbolicModel(nn.Module):
         execution_order_nodes = self._remove_repeated_execution(execution_order_nodes)
 
         self._execution_order_nodes = execution_order_nodes
-        self._execution_order_layers = [node.layer for node in self._execution_order_nodes]
+        execution_order_layers = []
+        for node in self._execution_order_nodes:
+            assert node.layer is not None
+            execution_order_layers.append(node.layer)
+        self._execution_order_layers = execution_order_layers
 
         for _idx, node in enumerate(self._execution_order_nodes):
+            assert node.layer is not None
             if node._custom_provided_name is not None:
                 # Use layer name provided by the user
                 layer_name = node._custom_provided_name
