@@ -3,8 +3,8 @@
 [//]: # (To get badges go to https://shields.io/ and use https://pypi.org/pypi/slicemap/json as data url. Query fields using dot as the separator.)
 
 [![PyPi version](https://img.shields.io/badge/dynamic/json?label=latest&query=info.version&url=https%3A%2F%2Fpypi.org%2Fpypi%2Fpytorch-symbolic%2Fjson)](https://pypi.org/project/pytorch-symbolic)
-[![PyPI license](https://img.shields.io/badge/dynamic/json?label=license&query=info.license&url=https%3A%2F%2Fpypi.org%2Fpypi%2Fpytorch-symbolic%2Fjson)](https://github.com/sjmikler/pytorch-symbolic/blob/main/LICENSE.txt)
-[![Notebook](https://github.com/gahaalt/pytorch-symbolic/actions/workflows/run-notebook.yaml/badge.svg)](https://github.com/gahaalt/pytorch-symbolic/actions/workflows/notebook.yaml)
+[![PyPI license](https://img.shields.io/badge/dynamic/json?label=license&query=info.license&url=https%3A%2F%2Fpypi.org%2Fpypi%2Fpytorch-symbolic%2Fjson)](https://github.com/szmikler/pytorch-symbolic/blob/main/LICENSE.txt)
+[![Notebook](https://github.com/szmikler/pytorch-symbolic/actions/workflows/run-notebook.yaml/badge.svg)](https://github.com/szmikler/pytorch-symbolic/actions/workflows/run-notebook.yaml)
 
 Pytorch Symbolic is MIT licensed library that adds symbolic API for model creation to PyTorch.
 
@@ -81,7 +81,7 @@ See Jupyter Notebook showing the basic usage of Pytorch Symbolic:
 * See visualizations of graphs that are created under the hood.
 
 Open in Colab:
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/gahaalt/pytorch-symbolic/blob/develop/introduction.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/szmikler/pytorch-symbolic/blob/main/introduction.ipynb)
 
 ## Installation
 
@@ -97,7 +97,6 @@ Please create an issue if you notice a problem!
 
 ## Links
 
-* [See Documentation](https://github.com/sjmikler/pytorch-symbolic/tree/main/docs)
-* [See on GitHub](https://github.com/gahaalt/pytorch-symbolic/)
+* [See Documentation](https://github.com/szmikler/pytorch-symbolic/tree/main/docs)
+* [See on GitHub](https://github.com/szmikler/pytorch-symbolic/)
 * [See on PyPI](https://pypi.org/project/pytorch-symbolic/)
-

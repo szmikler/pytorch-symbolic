@@ -28,8 +28,8 @@ dev = ["ruff", "pyright", "pytest", "pytest-cov", "hatch", "twine"]
 full = ["networkx", "matplotlib", "scipy"]
 
 [project.urls]
-Home = "https://github.com/gahaalt/pytorch-symbolic"
-Documentation = "https://github.com/sjmikler/pytorch-symbolic/blob/main/docs"
+Home = "https://github.com/szmikler/pytorch-symbolic"
+Documentation = "https://github.com/szmikler/pytorch-symbolic/blob/main/docs"
 
 [tool.hatch.version]
 path = "pytorch_symbolic/__init__.py"
