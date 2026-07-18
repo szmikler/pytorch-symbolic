@@ -47,8 +47,6 @@ packages = ["pytorch_symbolic"]
 typeCheckingMode = "standard"
 include = ["pytorch_symbolic"]
 exclude = ["devel", "build", "dist", "benchmarks", "examples", "tests"]
-venvPath = "."
-venv = ".venv"
 
 [tool.ruff]
 line-length = 120

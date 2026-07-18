@@ -31,4 +31,4 @@ jobs:
       - name: Run ruff formatting
         run: .venv/bin/ruff format . --check
       - name: Run pyright
-        run: .venv/bin/pyright
+        run: .venv/bin/pyright --pythonpath .venv/bin/python
