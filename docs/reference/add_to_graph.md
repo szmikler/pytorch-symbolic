@@ -39,16 +39,15 @@ because then CPU does its work before GPU finishes previous kernel computation.
 Recommended, overhead-free way to use custom functions is to write yourself an ``nn.Module`` that does the same as the function of choice.
 Then you can use the model without sacrificing performance.
 
-::: pytorch_symbolic.add_to_graph
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+## API
+
+```text
+add_to_graph(func, *args, custom_name=None, **kwargs)
+```
+
+Registers `func` or a `torch.nn.Module` in the computation graph. At least one
+item in `args` or `kwargs` must be symbolic. Symbolic values may be nested in
+lists, tuples, and dictionaries. `custom_name` sets the displayed graph-layer
+name.
+
+[View the implementation and full docstring](../../pytorch_symbolic/functions_utility.py).

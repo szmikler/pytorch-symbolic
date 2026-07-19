@@ -18,7 +18,7 @@ Features:
 * No dependencies besides PyTorch
 * Produces models entirely compatible with PyTorch
 * Works with `torch.compile` and `torch.export`
-* Overhead free as tested in [benchmarks](docs/benchmarks.md)
+* Overhead free as tested in [benchmarks](https://github.com/szmikler/pytorch-symbolic/blob/main/docs/benchmarks.md)
 * Reduces the amount of boilerplate code
 * Works well with complex architectures
 * Code and documentation is automatically tested
@@ -61,7 +61,7 @@ _______________________________________________________
 ```
 
 **See more examples
-in [Documentation Quick Start](docs/quick_start.md).**
+in [Documentation Quick Start](https://github.com/szmikler/pytorch-symbolic/blob/main/docs/quick_start.md).**
 
 Symbolic models are plain `torch.nn.Module` objects, so they work with modern PyTorch tooling:
 
@@ -97,6 +97,6 @@ Please create an issue if you notice a problem!
 
 ## Links
 
-* [See Documentation](https://github.com/szmikler/pytorch-symbolic/tree/main/docs)
-* [See on GitHub](https://github.com/szmikler/pytorch-symbolic/)
-* [See on PyPI](https://pypi.org/project/pytorch-symbolic/)
+* [See Documentation](https://github.com/szmikler/pytorch-symbolic/blob/main/docs)
+* [See on GitHub](https://github.com/szmikler/pytorch-symbolic)
+* [See on PyPI](https://pypi.org/project/pytorch-symbolic)

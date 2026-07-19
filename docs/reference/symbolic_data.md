@@ -31,72 +31,34 @@ it is better enclose it in a custom module.
 However, being able to do it directly on Symbolic Data is convenient for prototyping.
 
 
-::: pytorch_symbolic.Input
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+## `Input`
 
-::: pytorch_symbolic.CustomInput
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+```text
+Input(shape=(), batch_size=1, batch_shape=None, dtype=torch.float32,
+      min_value=0.0, max_value=1.0)
+```
 
-::: pytorch_symbolic.symbolic_data.SymbolicData
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+Creates a root `SymbolicTensor`. `shape` excludes the batch dimension;
+`batch_shape`, when provided, includes it and takes precedence. The value range
+is used only for the sample tensor created while tracing the model.
 
-::: pytorch_symbolic.symbolic_data.SymbolicCallable
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+## `CustomInput`
 
-::: pytorch_symbolic.symbolic_data.SymbolicTensor
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+```text
+CustomInput(data)
+```
+
+Creates a root symbolic value from arbitrary example data. Use it when the
+tensor-oriented `Input` helper is not suitable.
+
+## Symbolic types
+
+- `SymbolicData` is the base class for symbolic values. Its `v`, `parents`, and
+  `children` properties expose the tracing value and graph connections.
+  `apply_module(layer, *others, custom_name=None)` registers an operation.
+- `SymbolicTensor` represents tensor data and supplies tensor shape helpers such
+  as `features`, `batch_size`, `C`, `H`, `W`, `CHW`, and `HWC`, as well as common
+  tensor operations.
+- `SymbolicCallable` represents callable values in a graph.
+
+[View signatures, implementation, and full docstrings](../../pytorch_symbolic/symbolic_data.py).

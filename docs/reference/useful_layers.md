@@ -4,16 +4,17 @@ Collection of simple ``torch.nn.Modules``.
 
 Some of them might be useful when building models using Pytorch Symbolic.
 
-::: pytorch_symbolic.useful_layers
-    options:
-        show_source: false
-        heading_level: 2
-        show_root_heading: true
-        members_order: source
-        show_object_full_path: false
-        docstring_section_style: table
-        show_signature_annotations: true
-        separate_signature: true
-        annotations_path: brief
-        merge_init_into_class: true
-        show_root_full_path: true
+## Layers
+
+- `LambdaOpLayer` and `NamedLambdaOpLayer` wrap a callable as a module.
+- `CallbackLayer` runs a callback and returns its input unchanged.
+- `AddOpLayer`, `SubOpLayer`, `MulOpLayer`, `ModOpLayer`, and `MatmulOpLayer`
+  implement basic symbolic operators.
+- `ConcatLayer` and `StackLayer` combine tensors along a selected dimension.
+- `ReshapeLayer` and `ViewCopyLayer` change tensor shapes.
+- `AggregateLayer` wraps reductions such as `torch.mean` and `torch.sum`.
+- `UnpackLayer`, `SliceLayer`, and `SliceLayerSymbolicIdx` support unpacking and
+  indexing graph values.
+- `MethodCall` and `GetAttr` represent method calls and attribute access.
+
+[View constructors and implementations](../../pytorch_symbolic/useful_layers.py).
